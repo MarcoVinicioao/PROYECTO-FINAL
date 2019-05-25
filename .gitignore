@@ -1,32 +1,111 @@
-# Prerequisites
-*.d
+//sistema de estacionamineto de 4 vehiculos 
+#include <Servo.h>
+Servo miservo;  // Definir un objeto
+#define ServoM    12     //Indicar a que pin PWM se conectara 
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+#define Exit      4      //Pin Salida
+#define In        5      //Pin Entrada
+#define CAPACITY  4        //Espacios disponibles del estacionamiento
 
-# Precompiled Headers
-*.gch
-*.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+//Configuracion de los pines para cada segmento del display
+#define  segA  0
+#define  segB  1
+#define  segC  2
+#define  segD  3
 
-# Fortran module files
-*.mod
-*.smod
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+int ledverde = 13; // utilizo el pin 12 para led verde
+//Declarar arreglo de los segmentos para presentar los numeros (0-9)
+int BarLow     , BarUp=120     ;      //Posicion servo "Cerrrado"
 
-# Executables
-*.exe
-*.out
-*.app
+     //Posicion servo "Abierto"
+byte segments[5] = {
+
+
+  B1111, // number 0
+  B1110, // number 1   //1,0,0,
+    B1101, // number 2  1011,1101
+    B1100, // number 3 1,1,0,0, 0011,1100
+    B1011, // number 4 0,0,1,0 , 1101 1011
+};
+
+   
+void setup(){
+  miservo.attach(ServoM);         
+
+  pinMode(In, INPUT);             //Recibe pulso "Entrada"
+  digitalWrite(In, HIGH);         //Envia señal al servo
+  pinMode(segA,OUTPUT);
+  pinMode(segB,OUTPUT);
+  pinMode(segC,OUTPUT);
+  pinMode(segD,OUTPUT);
+;
+//  analogWrite(Bright,255*INTEN/100);
+  miservo.write(BarUp);    //Levanta la pluma       
+delay(2000);
+
+//  miservo2.attach(ServoM2);          
+
+  pinMode(Exit, INPUT);           //Recibe pulso "Salida"
+  digitalWrite(Exit, HIGH);       //Envia señal al servo
+  pinMode(segA,OUTPUT);
+  pinMode(segB,OUTPUT);
+  pinMode(segC,OUTPUT);
+  pinMode(segD,OUTPUT);
+
+//  analogWrite(Bright,255*INTEN/100);
+ // miservo2.write(BarLow);           //Levanta la pluma
+
+}
+
+int  Available= 4;                    //Numero de espacios disponibles
+
+
+//Validacion de las posiciones disponibles del estacionamiento
+void loop(){
+Display(Available);
+BarLow=30    ;
+BarUp=120 ;
+//Entrada
+if(digitalRead(In)==1)
+{
+  delay(1000);
+  if(Available != 0){
+    Available--;
+     
+              delay(1000); 
+  miservo.write(BarLow);
+    delay(3000); 
+  
+           miservo.write(BarUp);  
+  
+  delay(1000); 
+        
+    }
+  }
+  
+//Salida
+if(digitalRead(Exit)==1)
+{
+    delay(1000);
+  if(Available != CAPACITY){
+    Available++;
+///    miservo2.write(BarUp);
+        digitalWrite(ledverde, HIGH); // se apaga el led verde
+    delay(1000);
+ //   miservo2.write(BarLow);
+    }
+  }
+}
+
+
+void Display(int number){
+byte segs =  ~segments[number];        //"~"este es un display de catodo comun
+
+digitalWrite(segA, bitRead(segs, 0) );
+digitalWrite(segB, bitRead(segs, 1) );
+digitalWrite(segC, bitRead(segs, 2) );
+digitalWrite(segD, bitRead(segs, 3) );
+
+}
